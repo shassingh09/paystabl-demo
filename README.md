@@ -1,4 +1,4 @@
-# Dynamic Agent
+# Used Car Bot Agent
 
 This example demonstrates an agent that can perform multi-tool tasks, without prior knowledge of the tools available to it. Each tool is paid for on a per-request basis using x402.
 
