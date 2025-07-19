@@ -22,10 +22,13 @@ type IndexEntry = {
   };
 };
 
+const carReportApi = "https://paystabl-dev.replit.app/wrapped/";
+const slug = "mon-beda";
+
 app.use(
   paymentMiddleware(process.env.PAY_TO_ADDRESS as `0x${string}`, {
     "/weather": "$0.01",
-    "/stock": "$0.05",
+    "/car-report": "$0.02",
   })
 );
 
@@ -37,16 +40,17 @@ app.get("/", (c) => {
         "Returns the 7 day forecast for weather in a city. Must include city as a query parameter escaped properly to be url safe (ex: 'http://localhost:4021/weather?city=London')",
       price: {
         amount: 0.01,
-        currency: "USD",
+        currency: "USDC",
       },
     },
+
     {
-      resourceUrl: "http://localhost:4021/stock",
+      resourceUrl: carReportApi + slug,
       resourceDescription:
-        "Returns the last 5 days of stock data for a given stock symbol. Must include symbol as a query parameter escaped properly to be url safe (ex: 'http://localhost:4021/stock?symbol=AAPL')",
+        "Returns the car report for a given VIN number. Must include VIN number as a query parameter escaped properly to be url safe (ex: 'https://paystabl-dev.replit.app/car-report?vin=1234567890')",
       price: {
-        amount: 0.05,
-        currency: "USD",
+        amount: 0.02,
+        currency: "USDC",
       },
     },
   ];
@@ -68,25 +72,17 @@ app.get("/weather", async (c) => {
 });
 
 
-app.get("/stock", async (c) => {
-  const symbol = c.req.query("symbol")?.toUpperCase();
-  if (!symbol) {
-    return c.json({ error: "Symbol is required" }, 400);
+app.get("/car-report", async (c) => {
+  const vin = c.req.query("vin");
+  if (!vin) {
+    return c.json({ error: "VIN number is required" }, 400);
   }
-  const url = `https://api.marketstack.com/v2/eod?access_key=${process.env.MARKETSTACK_API_KEY}&symbols=${symbol}`;
+  const url = `${carReportApi}${slug}?vin=${vin}`;
   const response = await fetch(url);
+  console.log("Car Report API URL:", url);
   const data = await response.json();
-  const last5Days = data.data.slice(0, 5);
-  const last5DaysWithPrices = last5Days.map((day: any) => ({
-    open: day.open,
-    close: day.close,
-    high: day.high,
-    low: day.low,
-    volume: day.volume,
-    date: day.date,
-    symbol: day.symbol,
-  }));
-  return c.json(last5DaysWithPrices);
+  const carReport = data.data;
+  return c.json(carReport);
 });
 
 console.log(`Resource running on port ${port}`);
